@@ -1,0 +1,33 @@
+---
+- hosts: master-nodes-k8s
+  vars_files:
+  - k8s_vars
+  tasks:
+  - name: Pull Image a las configuraciones requeridas por k8s
+    shell: kubeadm config images pull
+
+  - name: Reseteando kubeadm
+    shell: kubeadm reset -f
+    register: output
+
+  - name: Iniciando K8S cluster
+    shell: kubeadm init --apiserver-advertise-address {{ad_addr}} --pod-network-cidr={{cidr_v}}
+    register: output
+
+  - name: Storing Logs and Generated token for future purpose.
+    local_action: copy content={{ output.stdout }} dest=./{{ k8s_token }}
+
+  - name: Enviar token al master
+    copy:
+      src: ./{{ k8s_token }}
+      dest: $HOME/{{ k8s_token }}
+
+  - name: Creando archivos requeridos
+    shell: |
+     mkdir -p $HOME/.kube
+     sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
+     sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+  - name: Instalando Network weave-net
+    shell: |
+      kubectl apply -f https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')

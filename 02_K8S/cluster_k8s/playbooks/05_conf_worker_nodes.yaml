@@ -1,0 +1,15 @@
+---
+- hosts: worker-nodes-k8s
+  vars_files:
+  - k8s_vars
+  tasks:
+  - name: Copiando token a los nodos worker
+    copy:
+      src: ./{{ k8s_token }}
+      dest: /root/k8s_token
+
+  - name: Uniendo nodos worker con el master K8S
+    shell: |
+     kubeadm reset -f
+     cat /root/k8s_token | tail -2 > join_k8s.sh
+     sh join_k8s.sh

@@ -1,0 +1,35 @@
+master:
+  adminUser: admin
+  adminPassword: admin
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+  serviceType: NodePort
+  nodePort: 32323
+installPlugins:
+  - blueocean:1.18.1
+  - kubernetes-cd:2.0.0
+
+agent:
+  enabled: true
+  image: "joao29/jnlp-slave-alpine-docker"
+  tag: "latest"
+resources:
+  requests:
+    cpu: "200m"
+    memory: "256Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+volumes:
+  - type: HostPath
+    hostPath: /var/run/docker.sock
+    mountPath: /var/run/docker.sock
+
+persistence:
+  storageClass: 'managed-nfs-storage'
+  size: 8Gi
+
+rbac:
+  create: true

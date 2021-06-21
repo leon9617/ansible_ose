@@ -1,0 +1,43 @@
+---
+- hosts: master-nodes-k8s
+  vars_files:
+  - k8s_vars
+  tasks:
+
+    - name: Cambiando Hostname Master
+      hostname:
+        name: "{{ hostname_master }}"
+
+- hosts: nodo1
+  vars_files:
+  - k8s_vars
+  tasks:
+
+    - name: Cambiando Hostname Worker1
+      hostname:
+        name: "{{ hostname_worker_1 }}"
+        
+- hosts: nodo2
+  vars_files:
+  - k8s_vars
+  tasks:
+    - name: Cambiando Hostname Worker2
+      hostname:
+        name: "{{ hostname_worker_2 }}"
+
+- hosts: all
+  vars_files:
+  - k8s_vars
+  tasks:
+    - name: Agregando Linea /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        line: '{{ ip_master }} {{ hostname_master }} master'
+    - name: Agregando Linea /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        line: '{{ ip_nodo1 }} {{ hostname_worker_1 }} nodo1'
+    - name: Agregando Linea /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        line: '{{ ip_nodo2 }} {{ hostname_worker_2 }} nodo2'

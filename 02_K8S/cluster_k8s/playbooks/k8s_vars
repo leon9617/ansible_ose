@@ -1,0 +1,29 @@
+#INGRESAR LA IP DEL MASTER
+ad_addr: 192.168.1.72
+
+#INGRESAR LAS IPS DEL CLUSTER
+ip_master: 192.168.1.72
+ip_nodo1: 192.168.1.73
+ip_nodo2: 192.168.1.74
+
+#INGRESAR HOSTNAME DE LOS SERVIDORES
+hostname_master: master.ose.pe
+hostname_worker_1: nodo1.ose.pe
+hostname_worker_2: nodo2.ose.pe
+
+cidr_v: 172.16.0.0/16
+
+paquetes:
+- kubelet-1.14.10-0.x86_64
+- kubeadm-1.14.10-0.x86_64
+- kubectl-1.14.10-0.x86_64
+
+servicios:
+- docker
+- kubelet
+
+ports:
+- "6443/tcp"
+- "10250/tcp"
+
+k8s_token: k8s_token

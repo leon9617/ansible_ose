@@ -1,0 +1,8 @@
+---
+- import_playbook: playbooks/00_configurando_nodos.yaml
+- import_playbook: playbooks/01_disable_swap_firewall.yaml
+- import_playbook: playbooks/02_preconf_nodos.yaml
+- import_playbook: playbooks/03_conf_master_node.yaml
+- import_playbook: playbooks/04_interlude.yaml
+- import_playbook: playbooks/05_conf_worker_nodes.yaml
+- import_playbook: playbooks/06_post_install.yaml

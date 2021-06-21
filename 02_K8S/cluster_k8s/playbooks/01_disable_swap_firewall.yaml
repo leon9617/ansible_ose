@@ -1,0 +1,29 @@
+---
+- hosts: all
+  vars_files:
+  - k8s_vars
+  tasks:
+  - name: Deshabilitar SWAP
+    shell: swapoff -a
+
+  - name: Comentar SWAP en fstab
+    replace:
+     path: /etc/fstab
+     regexp: '(.*swap*)'
+     replace: '#\1'
+
+  - name: Deteniendo firewalld
+    service:
+      name: firewalld
+      state: stopped
+      enabled: no
+
+  - name: Deshabilitando SElinux - 1
+    selinux:
+      policy: targeted
+      state: permissive
+
+  - name: Deshabilitando SElinuxx - 2
+    selinux:
+      state: disabled
+

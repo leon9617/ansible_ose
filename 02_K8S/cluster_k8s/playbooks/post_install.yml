@@ -1,0 +1,29 @@
+---
+- name: post_install
+  hosts: kubernetes-master-nodes
+  tasks:
+
+
+    - name: esperando que termine el cluster
+      pause:
+        minutes: 1
+    - name: verificacion del clúster
+      command: "kubectl get nodes"
+
+    - name: creacion del namespace
+      command: "kubectl apply -f /etc/ansible/cluster_k8s/playbooks/namespace.yaml"
+
+    - name: Instalando nfs
+      command: "yum install nfs-utils -y"
+
+    - name: Iniciar nfs
+      command: "systemctl start nfs"
+
+    - name: Habilitando nfs
+      command: "systemctl enable nfs"
+
+    - name: Iniciar rpcbind
+      command: "systemctl start rpcbind"
+
+    - name: habilitando rpcbind
+      command: "systemctl enable rpcbind"

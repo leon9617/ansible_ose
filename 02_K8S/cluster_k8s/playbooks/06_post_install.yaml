@@ -1,0 +1,16 @@
+- hosts: master-nodes-k8s
+  tasks:
+  - name: Finalizando cluster k8s . . .
+    pause:
+      minutes: 1
+
+  - name: Validado cluster K8S
+    command: kubectl get nodes
+
+  - name: Enviando YAML namespace
+    copy:
+      src: ./namespace.yaml
+      dest: /root/namespace.yaml
+
+  - name: Creando NameSpaces
+    command: kubectl apply -f /root/namespace.yaml
