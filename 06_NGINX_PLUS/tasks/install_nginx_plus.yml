@@ -1,0 +1,74 @@
+---
+- name: Deteniendo y Deshabiltiando Firewalld
+  service:
+    name: firewalld
+    state: stopped
+    enabled: False
+
+- name: Deshabilitando SeLinux
+  selinux:
+    state: disabled
+
+- name: Setenforce
+  action: command /usr/sbin/setenforce 0
+
+#    - name: Install epel
+#      yum:
+#        name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+#      become: yes
+
+- name: NGINX Plus | Creando directorio de repositorios de certificados ssl de NGINX Plus
+  file: 
+    path: /etc/ssl/nginx 
+    state: directory 
+    group: root 
+    mode: 0700
+
+- name: NGINX Plus | Copiando el certificado de repositorio de NGINX Plus
+  copy: 
+    src: /etc/ssl/nginx/nginx-repo.crt 
+    dest: /etc/ssl/nginx/nginx-repo.crt 
+    owner: root 
+    group: root 
+    mode: 0700
+ 
+- name: NGINX Plus | Copiando la clave del repositorio de NGINX Plus
+  copy: 
+    src: /etc/ssl/nginx/nginx-repo.key 
+    dest: /etc/ssl/nginx/nginx-repo.key 
+    owner: root 
+    group: root 
+    mode: 0700
+
+- name: Instalando Certificados CA
+  yum:
+    name: ca-certificates
+    state: latest
+
+- name: NGINX Plus | Descargando el certificado de CA de NGINX Plus
+  get_url: 
+    url: https://cs.nginx.com/static/files/nginx-plus-7.4.repo 
+    dest: /etc/yum.repos.d/ 
+
+- name: NGINX Plus | Installing NGINX Plus
+  yum:
+    name: nginx-plus
+    state: latest
+ 
+- name: NGINX Plus | Starte NGINX Plus
+  service:
+    name: nginx
+    state: started
+    
+- name: NGINX Plus | Copiando la el dashboard
+  copy:
+    src: /etc/ansible/05_NGINXPLUS/tasks/dashboard.conf
+    dest: /etc/nginx/conf.d/dashboard.conf
+    owner: root
+    group: root
+    mode: 0700
+
+- name: NGINX Plus | Restarted NGINX Plus
+  service:
+    name: nginx
+    state: restarted 

@@ -1,0 +1,4 @@
+---
+- hosts: nginxplus
+  tasks:
+    - include: 'tasks/install_nginx_plus.yml'
