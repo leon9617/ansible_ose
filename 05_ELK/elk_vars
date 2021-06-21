@@ -1,0 +1,3 @@
+hostname_elk: elastic01.ose.pe
+network: 192.168.1.102
+network1: 192.168.1.103

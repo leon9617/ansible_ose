@@ -1,0 +1,103 @@
+---
+- hosts: elk
+  become: yes
+  gather_facts: no
+  tasks:
+
+    - name: Reemplazando Linea elasticsearch.yml
+      lineinfile:
+        path: /etc/elasticsearch/elasticsearch.yml
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backrefs: yes
+      with_items:
+        - { regexp: '#cluster.name: my-application' , line: 'cluster.name: osenterprise' }
+        - { regexp: '#node.name: node-1' , line: 'node.name: ${HOSTNAME} ' }
+
+    - name: Restart service elasticsearch
+      service:
+        name: elasticsearch
+        state: restarted
+
+    - name: Reemplazando Linea elasticsearch.yml
+      lineinfile:
+        path: /etc/elasticsearch/elasticsearch.yml
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backrefs: yes
+      with_items:
+        - { regexp: '#network.host: ' , line: 'network.host: 192.168.1.102' }
+        - { regexp: '#http.port: ' , line: 'http.port: 9200' }
+
+    - name: Restart service elasticsearch
+      service:
+        name: elasticsearch
+        state: restarted
+
+    - name: Add port to firewalld
+      firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled
+      loop:
+        - 9200/tcp
+
+    - name: reload service firewalld
+      systemd:
+        name: firewalld
+        state: reloaded
+
+    - name: Reemplazando Linea kibana.yml
+      lineinfile:
+        path: /etc/kibana/kibana.yml
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backrefs: yes
+      with_items:
+        - { regexp: '#server.port: 5601' , line: 'server.port: 5601' }
+        - { regexp: '#server.host: "localhost"' , line: 'server.host: "192.168.1.102"' }
+        - { regexp: '#elasticsearch.hosts:' , line: 'elasticsearch.hosts: ["http://192.168.1.102:9200"]' }
+
+    - name: Restart service kibana
+      service:
+        name: kibana
+        state: restarted
+
+    - name: Add port to firewalld
+      firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled
+      loop:
+        - 5601/tcp
+
+    - name: reload service firewalld
+      systemd:
+        name: firewalld
+        state: reloaded
+
+    - name: Reemplazando Linea kibana.yml
+      lineinfile:
+        path: /etc/kibana/kibana.yml
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backrefs: yes
+      with_items:
+        - { regexp: '#logging.dest: stdout' , line: 'logging.dest: /var/log/kibana/kibana.log' }
+
+    - name: Create directory kibana log
+      file:
+        path: /var/log/kibana
+        state: directory
+
+    - name: Change kubeconfig file permission
+      file:
+        path: /var/log/kibana/
+        owner: kibana
+        group: kibana
+
+    - name: Restart service kibana
+      service:
+        name: kibana
+        state: restarted
+

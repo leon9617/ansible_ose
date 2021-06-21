@@ -1,0 +1,4 @@
+---
+- import_playbook: playbooks/01_install_elk.yml
+#- import_playbook: playbooks/02_interlude.yml
+- import_playbook: playbooks/03_final_install_elk.yml
