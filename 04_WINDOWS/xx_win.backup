@@ -1,0 +1,6 @@
+---
+ansible_user: ansible
+ansible_password: admin2019.
+ansible_connections: winrm
+ansible_winrm_transport: basic
+ansible_winrm_port: 5985

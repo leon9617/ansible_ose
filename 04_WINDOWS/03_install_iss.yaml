@@ -1,0 +1,20 @@
+--- 
+- name: Install the iis web service
+  gather_facts: no 
+ 
+  tasks:
+
+    - name: install iis
+      win_feature: 
+        name: Web-Server
+        state: present
+
+    - name: start iis service
+      win_service:
+        name: W3Svc
+        state: started
+    
+    - name: Create website index.html
+      win_copy:
+      content: "<html><body><h1>Our site is alive!</h1><p><h3>{{ item }}"
+      dest: C:\Inetpub\www\root\index.html
