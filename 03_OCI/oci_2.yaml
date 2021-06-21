@@ -1,0 +1,78 @@
+---
+- name: Management users - creation user with custom password
+ # hosts: 168.138.150.178
+  hosts: 192.168.1.63
+  gather_facts: False
+  become: True
+
+  vars:
+
+    - user_pass: $Prueba2@ba2
+
+  tasks:
+
+#    - name: Creando Usuario
+#      user:
+#        name: "{{ item.name }}"
+#        comment: "{{ item.comment }}"
+#        password: "{{ user_pass | password_hash('sha512') }}"
+#        state: present
+#        shell: /bin/bash
+#        system: yes
+#        hidden: yes
+#      become: true
+#      loop:
+#        - { name: 'luisleon', comment: 'Primer luisleon' }
+#        - { name: 'usuarioleon', comment: 'Segundo Usuarioleon' }
+
+#    - name: Creando directorio
+#      file:
+#        path: /home/{{ item }}/.ssh/
+#        state: directory
+#        mode: u=rwX,g=---,o=---
+#        recurse: yes
+#      with_items:
+#        - 'jperalta'
+#        - 'usuarioleon'
+
+    - name: Generando llave SSH 
+      user:
+        name: "{{ item }}"
+        generate_ssh_key: yes
+        ssh_key_bits: 2048
+        ssh_key_type: rsa
+        ssh_key_file: /home/{{ item }}/.ssh/id_rsa
+      register: result 
+      with_items:
+        - 'jperalta'
+#        - 'usuarioleon'
+
+#    - debug:
+#        var: result
+
+#    - name: Crear archivo authorized_keys
+#      file:
+#        path: /home/{{ item.name }}/.ssh/authorized_keys
+#        state: touch
+#      loop:
+#        - { name: 'luisleon' }
+#        - { name: 'usuarioleon' }
+
+#    - name: Set authorized key took from file
+#      authorized_key:
+#        user: "{{ item }}"
+#        state: present
+#        key: "{{ result.id_rsa.pub }}"
+#      with_items:
+#        - 'usuarioluis'
+#        - 'usuarioleon'
+
+#    - name: Cargar llave publica x usuario
+#      copy:
+#        src: /home/{{ item }}/.ssh/id_rsa.pub
+#        dest: /home/{{ item }}/.ssh/authorized_keys
+#        owner: "{{ item }}"
+#        group: "{{ item }}"
+#        remote_src: yes
+#      with_items:
+#        ['luisleon']

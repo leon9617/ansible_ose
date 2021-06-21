@@ -1,0 +1,1 @@
+168.138.150.178 ansible_ssh_private_key_file=/root/archivo ansible_user=opc

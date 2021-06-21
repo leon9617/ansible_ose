@@ -1,0 +1,106 @@
+---
+- name: Management users - creation user with custom password
+  hosts: 168.138.150.178 
+  gather_facts: False
+  become: True
+
+  vars:
+  
+    - user_pass: $Prueba2@ba2
+ 
+  tasks:
+
+    - name: Crear directorio
+      file:
+        path: /root/.ssh/{{ item }}
+        state: directory
+      with_items:
+        - 'prueba4'
+        - 'prueba5'
+
+    - name: Generando Ssh Key
+      user: 
+        name: "{{ item }}"
+        generate_ssh_key: yes
+        ssh_key_bits: 2048
+        ssh_key_type: rsa
+        ssh_key_file: /root/.ssh/{{ item }}/id_rsa
+      with_items:
+        - 'prueba4'
+        - 'prueba5'
+
+    - name: Create Usuario
+      user:
+        name: "{{ item.name }}"
+        comment: "{{ item.comment }}"
+        password: "{{ user_pass | password_hash('sha512') }}"
+        state: present
+        shell: /bin/bash
+        system: yes
+        hidden: yes
+      become: true 
+      loop:
+        - { name: 'prueba4', comment: 'Esto es prueba1' }
+        - { name: 'prueba5', comment: 'Esto es prueba2' } 
+
+    - name: Crear directorio
+      file:
+        path: /home/{{ item }}/.ssh/
+        state: directory
+      with_items:
+        - 'prueba4'
+        - 'prueba5'
+
+    - name: Crear archivo authorized_keys
+      file:
+        path: /home/{{ item.name }}/.ssh/authorized_keys
+        state: touch
+      loop:
+        - { name: 'prueba4' }
+        - { name: 'prueba5' }
+
+    - name: Cargar llave publica x usuario
+      copy:
+        src: /root/.ssh/{{ item }}/id_rsa.pub
+        dest: /home/{{ item }}/.ssh/authorized_keys
+        owner: "{{ item }}"
+        group: "{{ item }}"
+        remote_src: yes
+      with_items:
+        ['prueba1', 'prueba2']
+
+#    - name: Check if bamboo user already is in SSHD AllowUsers list
+#      command: grep -P '^[ \t]*AllowUsers[ \t]+([-\w ]+[ \t]+)*prueba1([ \t]+.+)*$' /etc/ssh/sshd_config
+#      register: allow_users_exists
+#      changed_when: no
+#      ignore_errors: yes
+
+    - name: Configurar el ssh_config
+      lineinfile:
+        dest: /etc/ssh/ssh_config
+        regexp: ^AllowUsers opc otools                  oracle 
+        line: AllowUsers opc otools                     oracle prueba1 prueba2 
+
+#    - name: Allow bamboo user SSH login
+#      lineinfile:
+#        regexp: ^[ \t]*AllowUsers([ \t]+.*)$
+#        line: AllowUsers prueba1\1  
+#        line: AllowUsers opc otools                   oracle prueba1\1
+#        dest: /etc/ssh/sshd_config
+#        backrefs: yes
+#        validate: sshd -t -f %s
+#      when: allow_users_exists.rc != 0
+#      notify:
+#        - reload sshd
+
+#    handlers:
+    - name: reload sshd
+      service:
+        name: sshd
+        state: restarted
+    
+#    - name: Set authorized key took from file
+#      authorized_key:
+#        user: prueba1
+#        state: present
+#        key: "{{ lookup('file', '/home/prueba1/.ssh/authorized_keys') }}"
