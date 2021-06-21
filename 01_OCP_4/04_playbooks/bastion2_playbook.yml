@@ -1,0 +1,74 @@
+---
+- name: Configuracion Bastion DNS
+  hosts: bastion-dns
+  gather_facts: True
+  serial: 1
+  become: True
+  vars_files:
+    - /etc/ansible/openshift/openshift_variable.yml
+  tasks: 
+ 
+    - name: Transfiriendo install-config
+      template:
+        src: /etc/ansible/openshift/bastion_dns_doc/install-config.yml
+        dest: /openshift/install-config.yaml
+
+    - name: Create Manifests Openshift
+      command: ./openshift-install create manifests
+      args:
+        chdir: /openshift
+      become: true
+
+    - name: Reemplazando Linea
+      lineinfile:
+        path: /openshift/manifests/cluster-scheduler-02-config.yml
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backrefs: yes
+      with_items:
+        - { regexp: 'mastersSchedulable: true' , line: '  mastersSchedulable: false' }
+
+    - name: Ejecutando script install
+      command: ./openshift-install create ignition-configs
+      args:
+        chdir: /openshift
+      become: true
+
+    - name: Instalando httpd
+      yum:
+        name: httpd
+        state: latest
+
+    - name: Creando directorio pxelinux.cfg
+      file:
+        path: /var/www/html/ocp
+        state: directory
+
+    - name: Copiando archivos y directorios
+      copy:
+        src: /openshift/{{ item }}
+        dest: /var/www/html/ocp/
+        remote_src: yes
+        directory_mode: yes
+      with_items:
+        - 'bootstrap.ign'
+        - 'master.ign'
+        - 'worker.ign'
+
+    - name: Dando permisos
+      file:
+        path: dir
+        mode: u=rw,g=r,o=r
+        recurse: yes
+
+    - name: Descargando Openshift Client
+      get_url:
+        url: "{{ metal_bios }}"
+        dest: /var/www/html/ocp/
+
+    - name: Iniciando y Habilitando httpd
+      service:
+        name: httpd
+        state: started
+        enabled: True
+

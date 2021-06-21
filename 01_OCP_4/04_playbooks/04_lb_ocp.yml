@@ -1,0 +1,65 @@
+---
+- name: Configuracion Servidor Balanceador
+  hosts: lb
+  gather_facts: True
+  become: True
+  vars_files:
+    - /etc/ansible/01_OCP_4/02_variables/variables_ocp
+
+  tasks:
+
+    - name: Cambiando hostname
+      hostname:
+        name: "{{ hostname_lb }}"
+
+    - name: Reemplazando Linea Tarjeta de Red
+      lineinfile:
+        path: /etc/sysconfig/network-scripts/ifcfg-ens33
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backrefs: yes
+      with_items:
+        - { regexp: 'DNS1=8.8.8.8' , line: 'DNS1={{ ip_dns_server }}' }
+
+    - name: Agregando Linea en Tarjeta de Red
+      lineinfile:
+        dest: /etc/sysconfig/network-scripts/ifcfg-ens33
+        regexp: ^IPV6_PRIVACY=no
+        line: DNS2=8.8.8.8
+
+    - name: Restart Enable
+      shell: systemctl restart network
+
+    - name: Transfiriendo nginx.repo
+      template:
+        src: /etc/ansible/01_OCP_4/03_infraestructura/03_lb_infra/repo_nginx.yml
+        dest: /etc/yum.repos.d/nginx.repo
+
+    - name: Instalando Nginx
+      yum:
+        name: nginx
+        state: latest
+
+    - name: Iniciando y Habilitando Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: True
+    
+    - name: Registrando default_conf
+      stat: path=/etc/nginx/conf.d/default.conf
+      register: default_conf
+
+    - name: Cambiado nombre archivo
+      command: mv /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default_backup
+      when: default_conf.stat.exists
+
+    - name: Transfieriendo nginx.conf
+      template:
+        src: /etc/ansible/01_OCP_4/03_infraestructura/03_lb_infra/nginx.conf.yml
+        dest: /etc/nginx/nginx.conf
+        newline_sequence: '\r\n'
+
+    - name: Recargando nginx
+      shell: nginx -s reload
+      become: true

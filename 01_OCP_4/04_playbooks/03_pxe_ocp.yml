@@ -1,0 +1,59 @@
+---
+- name: Configuracion Servidor PXE
+  hosts: pxe
+  gather_facts: True
+  become: True
+  vars_files:
+    - /etc/ansible/01_OCP_4/02_variables/variables_ocp
+
+  tasks:
+
+    - name: Cambiando hostname PXE
+      hostname:
+        name: "{{ hostname_pxe }}"
+
+    - name: Reemplazando Linea Tarjeta de Red
+      lineinfile:
+        path: /etc/sysconfig/network-scripts/ifcfg-ens33
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backrefs: yes
+      with_items:
+        - { regexp: 'DNS1=8.8.8.8' , line: 'DNS1={{ ip_dns_server }}' }
+
+    - name: Agregando Linea en Tarjeta de Red
+      lineinfile:
+        dest: /etc/sysconfig/network-scripts/ifcfg-ens33
+        regexp: ^IPV6_PRIVACY=no
+        line: DNS2=8.8.8.8
+
+    - name: Restart Enable
+      shell: systemctl restart network
+
+    - name: Instalando dnsmasq
+      yum:
+        name: "{{ pack }}"
+        state: latest
+      vars:
+        pack:
+        - dnsmasq
+
+    - name: Registrando dnsmaq.conf
+      stat: path=/etc/dnsmasq.conf
+      register: dns_masq
+
+    - name: Cambiado nombre archivo
+      command: mv /etc/dnsmasq.conf /etc/dnsmasq_backup
+      when: dns_masq.stat.exists
+
+    - name: Transfiriendo dnsmasq.conf
+      template:
+        src: /etc/ansible/01_OCP_4/03_infraestructura/02_pxe_infra/dhcpd.conf.yml
+        dest: /etc/dhcp/dhcpd.conf
+
+    - name: Iniciando y Habilitando dnsmasq
+      service:
+        name: dnsmasq
+        state: started
+        enabled: yes
+

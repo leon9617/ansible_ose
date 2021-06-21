@@ -1,0 +1,60 @@
+---
+- name: Configuracion Servidor DNS
+  hosts: dns
+  gather_facts: True
+  become: True
+  vars_files:
+    - /etc/ansible/03_openshift_4_x/variables/variable_ocp_4_x.yml
+  tasks:
+
+    - name: Cambiando hostname DNS
+      hostname:
+        name: "{{ hostname_dns }}"
+
+    - name: Reemplazando Linea Tarjeta de Red DNS
+      lineinfile:
+        path: /etc/sysconfig/network-scripts/ifcfg-ens33
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backrefs: yes
+      with_items:
+        - { regexp: 'DNS1=8.8.8.8' , line: 'DNS1={{ ip_dns_server }}' }
+
+    - name: Agregando Linea en Tarjeta de Red DNS
+      lineinfile:
+        dest: /etc/sysconfig/network-scripts/ifcfg-ens33
+        regexp: ^IPV6_PRIVACY=no
+        line: DNS2=8.8.8.8
+
+    - name: Restart Enable DNS
+      shell: systemctl restart network
+
+    - name: Instalando bind y bind-utils
+      yum:
+        name: "{{ packages }}"
+        state: latest
+      vars:
+        packages:
+        - bind
+        - bind-utils
+
+    - name: Transfiriendo name.conf
+      template:
+        src: /etc/ansible/03_openshift_4_x/dns_ocp_4/name.conf.yml
+        dest: /etc/named.conf
+
+    - name: Transfiriendo ose.zone
+      template:
+        src: /etc/ansible/03_openshift_4_x/dns_ocp_4/ose.zone.yml
+        dest: /var/named/ose.zone
+
+    - name: Transfiriendo reverse.zone
+      template:
+        src: /etc/ansible/03_openshift_4_x/dns_ocp_4/reverse.zone.yml
+        dest: /var/named/reverse.zone
+
+    - name: Iniciando y Habilitando Named
+      service:
+        name: named
+        state: started
+        enabled: True

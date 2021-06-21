@@ -1,0 +1,25 @@
+# OCP4 PXE BOOT Lab
+
+no-dhcp-interface=eth0
+interface=ens33
+
+#domain=clusterocp.ose.pe
+
+#### DHCP
+dhcp-range=ens33,{{ ip_start_dhcp }},{{ ip_end_dhcp }},24h
+dhcp-option=option:netmask,{{ ip_mascara_subred }}
+dhcp-option=option:router,{{ ip_private_router }}
+dhcp-option=option:dns-server,{{ ip_dns_server }}
+dhcp-option=option:ntp-server,{{ ip_dns_server }}
+
+#BOOTSTRAP
+dhcp-host={{ mac_bootstrap_server }},{{ ip_bootstrap_server }}
+
+#MASTERS
+dhcp-host={{ mac_master_0_server }},{{ ip_master_0_server }}
+dhcp-host={{ mac_master_1_server }},{{ ip_master_1_server }}
+dhcp-host={{ mac_master_2_server }},{{ ip_master_2_server }}
+ 
+#WORKER
+dhcp-host={{ mac_worker_0_server }},{{ ip_worker_0_server }}
+dhcp-host={{ mac_worker_1_server }},{{ ip_worker_1_server }}

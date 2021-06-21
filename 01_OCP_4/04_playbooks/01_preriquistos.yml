@@ -1,0 +1,40 @@
+---
+- name: Configuracion Servidores DNS,DHCP,Balanceador
+  hosts: lb
+  gather_facts: True
+  become: True
+  vars_files:
+    - /etc/ansible/01_OCP_4/02_variables/variables_ocp
+
+  tasks:
+
+    - name: Subscripcion de los servidores 
+      redhat_subscription:
+        state: present
+        username: "{{ name_subscription }}"
+        password: "{{ password_subscription }}"
+        pool_ids: "{{ pool_id_subscription }}"
+
+    - name: Deteniendo y Deshabilitando Firewalld
+      service:
+        name: firewalld
+        state: stopped
+        enabled: False
+
+    - name: Permissive SElinux
+      selinux:
+        policy: targeted
+        state: permissive
+
+    - name: Disable SELinux
+      selinux:
+        state: disabled
+
+    - name: Reiniciando Sistema Operativo
+      reboot:
+        reboot_timeout: 1800
+      register: task_result
+
+    - name: Espere one minuto
+      pause:
+        minutes: 1
