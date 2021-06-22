@@ -1,0 +1,19 @@
+---
+vpc_name : "taller_vpc"
+vpc_cidr: "192.168.0.0/16"
+aws_region: "us-east-1"
+subnet_name: "taller_subnet"
+subnet_cidr: "192.168.1.0/24"
+igw_name: "taller_igw"
+group_name: "security_taller"
+access_key: "AKIAQKLBAA6QAJXPC74B"
+secret_key: "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"
+
+nombre_llave: "osenterprise"
+
+tipo_instancia: "t2.micro"
+imagen: "ami-0affd4508a5d2481b"
+#imagen: "ami-0947d2ba12ee1ff75"
+ip_maquina: "192.168.1.40"
+sg_id: "sg-0e58753da19152620"
+subnet_id: "subnet-0bfdfc27e3fc7277e"

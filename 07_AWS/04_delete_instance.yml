@@ -1,0 +1,14 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+
+  - name: Eliminar Instancia de AWS
+    ec2:
+        instance_ids: "{{ id_instance }}"
+        state: absent
+        wait: True
+        region: "{{ region }}"
+        aws_access_key: "{{ access_key }}"
+        aws_secret_key: "{{ secret_key }}"

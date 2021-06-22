@@ -1,0 +1,129 @@
+---
+- name: Creacion
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars_files:
+    - /etc/ansible/01_AWS/variable.yml
+  tasks:
+
+    #Configuración VPC#
+
+    - name: Configuracion VPC
+      ec2_vpc_net:
+        name: "{{ vpc_name }}"
+        cidr_block: "{{ vpc_cidr }}"
+        region: "{{ aws_region }}"
+        state: present
+        aws_access_key: "{{ access_key }}"
+        aws_secret_key: "{{ secret_key }}"
+      register: my_vpc
+
+    - name: Mostrando VPC ID
+      debug:
+        msg: "{{ my_vpc.vpc.id }}"
+
+    - name: Estableciendo ID de VPC en una Variable
+      set_fact:
+        vpc_id: "{{ my_vpc.vpc.id }}"
+
+    
+    #Configuración Subnet#
+    
+    - name: Configuracion Subnet
+      ec2_vpc_subnet:
+       state: present
+       vpc_id: "{{ vpc_id }}"
+       region: "{{ aws_region }}"
+       az: "{{ aws_region }}a"
+       cidr: "{{ subnet_cidr }}"
+       aws_access_key: "{{ access_key }}"
+       aws_secret_key: "{{ secret_key }}"
+       map_public: yes
+       resource_tags:
+         Name: "{{ subnet_name }}"
+      register: my_public_subnet
+
+    - name: Mostrando Subnet ID
+      debug:
+        msg: "{{ my_public_subnet.subnet.id }}"
+
+    - name: Estableciendo ID de subred pública en una variable
+      set_fact:
+        public_subnet_id: "{{ my_public_subnet.subnet.id }}"
+
+
+    #Configuración Internet Gateway#
+    
+    - name: Configuracion IGW
+      ec2_vpc_igw:
+        vpc_id: "{{ vpc_id }}"
+        region: "{{ aws_region }}"
+        aws_access_key: "{{ access_key }}"
+        aws_secret_key: "{{ secret_key }}"
+        state: present
+        tags:
+          Name: "{{ igw_name }}"
+      register: my_vpc_igw
+
+    - name: Mostrando Gateway ID
+      debug:
+        msg: "{{ my_vpc_igw.gateway_id }}"
+
+    - name: Estableciendo id de GW en una variable
+      set_fact:
+        igw_id: "{{ my_vpc_igw.gateway_id }}"
+
+
+    #Configuración Route Table#
+    
+    - name: Configuración Route Table
+      ec2_vpc_route_table:
+        vpc_id: "{{ vpc_id }}"
+        region: "{{ aws_region }}"
+        aws_access_key: "{{ access_key }}"
+        aws_secret_key: "{{ secret_key }}"
+        subnets:
+          - "{{ public_subnet_id }}"
+        routes:
+          - dest: "0.0.0.0/0"
+            gateway_id: "{{ igw_id  }}"
+        tags:
+          Name: "Public"
+
+
+    #Configuración Security Group#
+
+    - name: Creando Security Group
+      ec2_group:
+        name: "{{ group_name }}"
+        description: "My Security Group"
+        vpc_id: "{{ vpc_id }}"
+        region: "{{ aws_region }}"
+        aws_access_key: "{{ access_key }}"
+        aws_secret_key: "{{ secret_key }}"
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 443
+            to_port: 443
+            cidr_ip: 0.0.0.0/0
+        rules_egress:
+          - proto: all
+            cidr_ip: 0.0.0.0/0
+      register: my_main_sg
+
+    - name: Mostrando Security Group ID
+      debug:
+        msg: "{{ my_main_sg.group_id }}"
+
+    - name: Estableciendo Security Group en una variable
+      set_fact:
+        main_sg_id: "{{ my_main_sg.group_id }}"

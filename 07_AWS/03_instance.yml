@@ -1,0 +1,33 @@
+---
+- name: Creacion AWS
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars_files:
+    - /etc/ansible/01_AWS/variable.yml
+  tasks:
+
+  #Creación Instancia#
+    - name: Creacion de una instancia en AWS con llave generada
+      ec2:
+        region: "{{ aws_region }}"
+        key_name: "{{ nombre_llave }}"
+        group_id: "{{ sg_id }}"
+        instance_type: "{{ tipo_instancia }}"
+        image: "{{ imagen }}"
+        wait: yes
+        wait_timeout: 500
+        volumes:
+          - device_name: /dev/sda1
+            volume_type: gp2
+            volume_size: 10
+            delete_on_termination: true
+        vpc_subnet_id: "{{ subnet_id }}"
+        assign_public_ip: yes
+        private_ip: "{{ ip_maquina }}"
+        instance_tags:
+          curso: Openshift
+          nodo: nodo1-4
+        count: 1
+        aws_access_key: "{{ access_key }}"
+        aws_secret_key: "{{ secret_key }}"
