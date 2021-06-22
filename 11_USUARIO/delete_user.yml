@@ -1,0 +1,22 @@
+- name: Creacion Grupo/Usuario/Permisos
+  hosts: 192.168.1.72
+  gather_facts: False
+  become: True
+  tasks:
+
+  # Eliminar Usuario #
+  
+    - name: Eliminar usuario
+      user:
+        name: "{{ user_name }}"
+        state: absent
+
+    - name: Eliminar usuario en Home
+      shell: rm -rf /home/{{ user_name }}
+   
+    - name: Eliminar usuario en Var
+      shell: rm -rf /var/spool/mail/{{ user_name }}
+
+    - name: Eliminar usuario con userdel
+      shell: userdel -r "{{ user_ name }}"
+

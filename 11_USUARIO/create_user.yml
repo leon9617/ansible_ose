@@ -1,0 +1,44 @@
+- name: Creacion Grupo/Usuario/Permisos
+  hosts: all
+  gather_facts: False
+  become: True
+  tasks:
+
+  # Creacion Grupo #
+
+    - name: Creacion Grupo
+      group:
+        name: "{{ user_group }}"
+        gid: "{{ id_group }}"
+        state: present
+
+  # Creacion Usuario #
+
+    - name: Creacion Usuario
+      user:
+        name: "{{ user_name }}"
+        password: "{{ user_pass | password_hash('sha512') }}"
+        state: present
+        shell: /bin/bash
+        groups: "{{ user_group }}"
+        system: yes
+        hidden: yes
+
+  # Tiempo Contraseña #
+
+    - name: Establecer la hora valida de la contraseña
+      shell: chage --lastday 0 "{{ user_name }}"
+    
+    - name: Establecer la hora valida de la contraseña
+      shell: chage -M 90 "{{ user_name }}"
+
+  # Usuario con Contraseña con items # 
+   
+#    - name: Creacion Usuario
+#      user:
+#        name: "{{ item.nombre }}"
+#        state: present
+#        group: "{{ item.grupo }}"
+#      witch_items:
+#        - { nombre: usuario1 , grupo: wheel }
+#        - { nombre: usuario2 , grupo: wheel } 

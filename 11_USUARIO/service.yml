@@ -1,0 +1,46 @@
+- name: Creacion Grupo/Usuario/Permisos
+  hosts: 192.168.1.72
+  gather_facts: False
+  become: True
+  tasks:
+
+  # Instalación Apache # 
+  
+    - name: Instalar Apache
+      yum:
+        name: httpd
+        state: latest
+
+    - name: Copy httpd.conf file
+      template:
+        src: httpd.conf
+        dest: /etc/httpd/conf/httpd.conf
+
+    - name: Start apache service
+      service:
+        name: httpd
+        state: restarted
+        enabled: yes
+
+    - name: Open port 80
+      firewalld:
+        port: 80/tcp
+        permanent: true
+        state: enabled
+
+    - name: Restart firewalld service
+      service:
+        name: firewalld
+        state: restarted
+
+
+  # Instalar Software #
+    
+    - name: Instalar Software
+      yum:
+        name : "{{ item }}"
+        state: latest
+      witch_items:
+        - mariadb-server
+        - mariadb
+

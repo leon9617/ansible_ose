@@ -1,0 +1,13 @@
+- name: Creacion Grupo/Usuario/Permisos
+  hosts: 192.168.1.72
+  gather_facts: False
+  become: True
+  tasks:
+ 
+  # Actualizar Contraseña #
+  
+    - name: Cambiar Contraseña
+      user:
+        name: "{{ user_name }}"
+        password: "{{ user_pass | password_hash('sha512') }}"
+        update_password: always   
