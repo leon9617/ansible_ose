@@ -1,0 +1,11 @@
+---
+- name: Particion de Discos
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Create a new partition
+      parted:
+        device: "{{ disk_name }}"
+        number: "{{ partition_number }}"
+        part_end: "{{ size_parted }}"
+        state: present

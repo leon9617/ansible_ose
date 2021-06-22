@@ -1,0 +1,28 @@
+---
+- name: Creacion LVM
+  hosts: all
+  gather_facts: false
+  tasks:
+
+    - name: vgcreate
+      lvg:
+        vg: "{{ vg_data }}"
+        pvs: "{{ pvs_name }}"
+
+    - name: lvcreate
+      lvol:
+        vg: "{{ vg_data }}"
+        lv: "{{ lv_name }}"
+        size: "{{ size }}"
+
+    - name: create file system
+      filesystem:
+        fstype: ext4
+        dev: "{{ dev_system }}"
+
+    - name: mount logical volume
+      mount:
+        name: "{{ name_mount }}"
+        src: "{{ src_mount }}"
+        fstype: ext4
+        state: mounted
