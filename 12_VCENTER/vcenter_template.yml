@@ -1,0 +1,35 @@
+- name: Create a Vm from a template
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  tasks:
+    - name: Clone the template
+      vmware_guest:
+        hostname: '192.168.1.215'
+        username: 'administrator@vsphere.local'
+        password: 'Admin2019.'
+        validate_certs: False
+#       NUEVO NOMBRE TEMPLATE
+        name: base_test_10
+#       TEMPLATE EXISTENTE 
+        template: bmesrv2004
+        datacenter: 'Lima-Datacenter1'
+        folder: /
+        state: state
+        cluster: 'Lima-Cluster1'
+        wait_for_ip_address: yes
+        disk:
+        - size_gb: 20
+          type: thin
+        datastore: datastore1
+        hardware:
+          memory_mb: 1512
+          num_cpus: 4
+          scsi: paravirtual
+        networks:
+        - name: VM Network
+          mac: aa:bb:dd:aa:00:18
+          ip: 192.168.1.138
+          netmask: 255.255.255.0
+          device_type: vmxnet3
+      delegate_to: localhost
