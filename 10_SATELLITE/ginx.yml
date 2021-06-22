@@ -1,0 +1,45 @@
+---
+- hosts: 192.168.1.71
+  become: yes  
+  tasks:
+    - name: restarted networl interface
+      hostname:
+        name: pc71.ose9.pe
+    - name: stop and disable firewall
+      service:
+        name: firewalld
+        state: stopped
+        enabled: false
+    - name: disable selinux 
+      selinux:
+        state: disabled
+    - name: enviar selinux
+      command: setenforce 0
+      ignore_errors: true
+      changed_when: false
+    - name: run command
+      command: curl --insecure --output katello-ca-consumer-latest.noarch.rpm https://satellite2.ose9.pe/pub/katello-ca-consumer-latest.noarch.rpm
+    - name: instalar katello
+      command: yum install -y katello-ca-consumer-latest.noarch.rpm
+    - name: register installe satellite
+      redhat_subscription:
+       state: present
+       activationkey: key1
+       org_id: Default_Organization
+       release: 7.7
+    - name: upgrade all packages
+      yum:
+        name: '*'
+        state: latest
+    - name: enable satellite
+      rhsm_repository:
+        name: rhel-7-server-satellite-tools-6.6-rpms
+    - name: install katello
+      yum:
+        name: katello-agent
+        state: latest
+    - name: enable service
+      service: 
+        name: goferd
+        state: started
+        enabled: yes 
